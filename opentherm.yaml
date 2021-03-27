@@ -1,0 +1,101 @@
+substitutions:
+  devicename: opentherm
+  upper_devicename: Opentherm
+
+esphome:
+  name: $devicename
+  platform: ESP8266
+  board: d1_mini_lite
+  arduino_version: '2.7.2'  
+  platformio_options:
+    lib_deps: 
+    - ihormelnyk/OpenTherm Library @ 1.1.0
+    - ESP Async WebServer
+
+  includes:
+    - opentherm_component.h
+    - opentherm_climate.h
+    - opentherm_switch.h
+    - opentherm_binary.h
+
+wifi:
+  ssid: !secret wifi_name
+  password: !secret wifi_password
+  
+# Enable logging
+logger:
+  baud_rate: 74880
+  #level: DEBUG
+
+api:
+
+ota:
+
+custom_component:
+  - lambda: |-
+      auto opentherm = new OpenthermComponent();
+      return {opentherm};
+    
+    components:
+      - id: opentherm
+
+sensor:
+  - platform: custom
+    lambda: |-    
+      OpenthermComponent *openthermComp = (OpenthermComponent*) opentherm;
+      return { 
+        openthermComp->boiler_temperature, 
+        openthermComp->external_temperature_sensor, 
+        openthermComp->return_temperature_sensor, 
+        openthermComp->pressure_sensor,
+        openthermComp->modulation_sensor
+      };
+    sensors:
+    - name: "Boiler Temperature"
+      unit_of_measurement: °C
+      accuracy_decimals: 2  
+    - name: "External Temperature"
+      unit_of_measurement: °C
+      accuracy_decimals: 0  
+    - name: "Return Temperature"
+      unit_of_measurement: °C
+      accuracy_decimals: 2
+    - name: "Heating Water Pressure"
+      unit_of_measurement: hPa
+      accuracy_decimals: 2
+    - name: "Boiler Modulation"
+      unit_of_measurement: "%"
+      accuracy_decimals: 0
+
+binary_sensor:
+  - platform: custom
+    lambda: |-
+      OpenthermComponent *openthermComp = (OpenthermComponent*) opentherm;
+      return {openthermComp->flame};
+
+    binary_sensors:
+    - name: "Flame"
+      #device_class: heat
+
+switch:
+  - platform: custom
+    lambda: |-
+      OpenthermComponent *openthermComp = (OpenthermComponent*) opentherm;
+      return {openthermComp->thermostatSwitch};
+
+    switches:
+      name: "Termostato ambiente"
+
+climate:
+  - platform: custom
+    lambda: |-
+      OpenthermComponent *openthermComp = (OpenthermComponent*) opentherm;
+      return {
+        openthermComp->hotWaterClimate, 
+        openthermComp->heatingWaterClimate
+      };
+
+    climates:
+      - name: "Hot water"
+      - name: "Heating water"
+
