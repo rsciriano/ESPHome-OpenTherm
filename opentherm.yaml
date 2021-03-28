@@ -17,6 +17,7 @@ esphome:
     - opentherm_climate.h
     - opentherm_switch.h
     - opentherm_binary.h
+    - opentherm_output.h
 
 wifi:
   ssid: !secret wifi_name
@@ -39,6 +40,21 @@ custom_component:
     components:
       - id: opentherm
 
+output:
+  - platform: custom
+    type: float
+    lambda: |-
+      OpenthermComponent *openthermComp = (OpenthermComponent*) opentherm;
+
+      auto opentherm_pid_output = new OpenthermFloatOutput();
+      openthermComp->set_pid_output(opentherm_pid_output);
+      App.register_component(opentherm_pid_output);     
+      return {opentherm_pid_output};
+    outputs:
+      id: pid_output
+      #min_power: 30.00%
+      #max_power: 60.00%
+
 sensor:
   - platform: custom
     lambda: |-    
@@ -48,7 +64,8 @@ sensor:
         openthermComp->external_temperature_sensor, 
         openthermComp->return_temperature_sensor, 
         openthermComp->pressure_sensor,
-        openthermComp->modulation_sensor
+        openthermComp->modulation_sensor,
+        openthermComp->heatting_target_temperature_sensor
       };
     sensors:
     - name: "Boiler Temperature"
@@ -66,6 +83,21 @@ sensor:
     - name: "Boiler Modulation"
       unit_of_measurement: "%"
       accuracy_decimals: 0
+    - name: "Heating Target Temperature"
+      unit_of_measurement: ºC
+      accuracy_decimals: 2
+  - platform: homeassistant
+    id: temperature_sensor
+    entity_id: sensor.temperature_sensor
+  - platform: pid
+    name: "PID Climate Result"
+    type: RESULT    
+  - platform: pid
+    name: "PID Climate HEAT"
+    type: HEAT    
+  - platform: pid
+    name: "PID Climate ERROR"
+    type: ERROR    
 
 binary_sensor:
   - platform: custom
@@ -85,6 +117,10 @@ switch:
 
     switches:
       name: "Termostato ambiente"
+  - platform: template
+    name: "PID Climate Autotune"
+    turn_on_action:
+      - climate.pid.autotune: pid_climate      
 
 climate:
   - platform: custom
@@ -98,4 +134,13 @@ climate:
     climates:
       - name: "Hot water"
       - name: "Heating water"
-
+  - platform: pid
+    id: pid_climate
+    name: "PID Climate Controller"
+    sensor: temperature_sensor
+    default_target_temperature: 21°C
+    heat_output: pid_output
+    control_parameters:
+      kp: 0.38197
+      ki: 0.01012
+      kd: 3.60387

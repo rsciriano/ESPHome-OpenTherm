@@ -4,6 +4,7 @@
 #include "opentherm_switch.h"
 #include "opentherm_climate.h"
 #include "opentherm_binary.h"
+#include "opentherm_output.h"
 
 
 // Pins to OpenTherm Adapter
@@ -19,6 +20,7 @@ ICACHE_RAM_ATTR void handleInterrupt() {
 class OpenthermComponent: public PollingComponent {
 private:
   const char *TAG = "opentherm_component";
+  OpenthermFloatOutput *pid_output_;
 public:
   Switch *thermostatSwitch = new OpenthermSwitch();
   Sensor *external_temperature_sensor = new Sensor();
@@ -26,14 +28,18 @@ public:
   Sensor *boiler_temperature = new Sensor();
   Sensor *pressure_sensor = new Sensor();
   Sensor *modulation_sensor = new Sensor();
+  Sensor *heatting_target_temperature_sensor = new Sensor();
   Climate *hotWaterClimate = new OpenthermClimate();
-  Climate *heatingWaterClimate = new OpenthermClimate();
+  OpenthermClimate *heatingWaterClimate = new OpenthermClimate();
   BinarySensor *flame = new OpenthermBinarySensor();
   
   // Set 3 sec. to give time to read all sensors (and not appear in HA as not available)
-  OpenthermComponent(): PollingComponent(3000) {
+  OpenthermComponent(): PollingComponent(15000) {
 
   }
+
+  void set_pid_output(OpenthermFloatOutput *pid_output) { pid_output_ = pid_output; }
+
 
   void setup() override {
     // This will be called once to set up the component
@@ -45,6 +51,10 @@ public:
       thermostatSwitch->add_on_state_callback([=](bool state) -> void {
         ESP_LOGD ("opentherm_component", "termostatSwitch_on_state_callback %d", state);    
       });
+
+      // Adjust HeatingWaterClimate depending on PID
+      heatingWaterClimate->set_supports_auto_mode(this->pid_output_ != nullptr);
+      heatingWaterClimate->set_supports_two_point_target_temperature(this->pid_output_ != nullptr);
   }
   float getExternalTemperature() {
       unsigned long response = ot.sendRequest(ot.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::Toutside, 0));
@@ -92,36 +102,54 @@ public:
     bool isFlameOn = ot.isFlameOn(response);
     bool isCentralHeatingActive = ot.isCentralHeatingActive(response);
     bool isHotWaterActive = ot.isHotWaterActive(response);
+    float return_temperature = getReturnTemperature();
+    float hotWater_temperature = getHotWaterTemperature();
+
 
     // Set temperature depending on room thermostat
-    if (thermostatSwitch->state) {
-      ot.setBoilerTemperature(heatingWaterClimate->target_temperature);
-      ESP_LOGD("opentherm_component", "setBoilerTemperature  at %f °C (from heating water climate)", heatingWaterClimate->target_temperature);
+    float heatting_target_temperature;
+    if (this->pid_output_ != nullptr) {
+      float pid_output = pid_output_->get_state();
+      if (pid_output == 0.0f) {
+        heatting_target_temperature = 10.0f;
+      }
+      else {
+        heatting_target_temperature =  pid_output * (heatingWaterClimate->target_temperature_high - heatingWaterClimate->target_temperature_low) 
+        + heatingWaterClimate->target_temperature_low;      
+      }
+      ESP_LOGD("opentherm_component", "setBoilerTemperature  at %f °C (from PID Output)", heatting_target_temperature);
+    }
+    else if (thermostatSwitch->state) {
+      heatting_target_temperature = heatingWaterClimate->target_temperature;
+      ESP_LOGD("opentherm_component", "setBoilerTemperature  at %f °C (from heating water climate)", heatting_target_temperature);
     }
     else {
       // If the room thermostat is off, set it to 10, so that the pump continues to operate
-      ot.setBoilerTemperature(10.0);
-      ESP_LOGD("opentherm_component", "setBoilerTemperature at %f °C (default low value)", 10.0);
+      heatting_target_temperature = 10.0;
+      ESP_LOGD("opentherm_component", "setBoilerTemperature at %f °C (default low value)", heatting_target_temperature);
     }
+    ot.setBoilerTemperature(heatting_target_temperature);
+
 
     // Set hot water temperature
     setHotWaterTemperature(hotWaterClimate->target_temperature);
 
-    // Read sensor values
+    // Read sensor values    
+    /*
     float boilerTemperature = ot.getBoilerTemperature();
     float ext_temperature = getExternalTemperature();
-    float return_temperature = getReturnTemperature();
-    float hotWater_temperature = getHotWaterTemperature();
     float pressure = getPressure();
     float modulation = getModulation();
 
     // Publish sensor values
-    flame->publish_state(isFlameOn); 
+    //flame->publish_state(isFlameOn); 
     external_temperature_sensor->publish_state(ext_temperature);
     return_temperature_sensor->publish_state(return_temperature);
     boiler_temperature->publish_state(boilerTemperature);
     pressure_sensor->publish_state(pressure);
     modulation_sensor->publish_state(modulation);
+    */
+    heatting_target_temperature_sensor->publish_state(heatting_target_temperature);
 
     // Publish status of thermostat that controls hot water
     hotWaterClimate->current_temperature = hotWater_temperature;
