@@ -5,17 +5,16 @@
 class OpenthermClimate : public Climate {
 private:
     const char *TAG = "opentherm_climate";
-    bool supports_auto_mode_ = false;
+    bool supports_heat_cool_mode_ = false;
     bool supports_two_point_target_temperature_ = false;
 public:
-
-    void set_supports_auto_mode(bool value)
+    void set_supports_heat_cool_mode(bool value)
     {
-        supports_auto_mode_ = value;
+        supports_heat_cool_mode_ = value;
     }    
-    bool get_supports_auto_mode()
+    bool get_supports_heat_cool_mode()
     {
-        return supports_auto_mode_;
+        return supports_heat_cool_mode_;
     }
 
     void set_supports_two_point_target_temperature(bool value)
@@ -32,7 +31,8 @@ public:
 
         auto traits = climate::ClimateTraits();
         traits.set_supports_current_temperature(true);
-        traits.set_supports_auto_mode(supports_auto_mode_);
+        // traits.set_supports_heat_cool_mode(supports_heat_cool_mode_);
+        traits.set_supports_heat_cool_mode(false);
         traits.set_supports_cool_mode(false);
         traits.set_supports_heat_mode(true);
         traits.set_supports_two_point_target_temperature(supports_two_point_target_temperature_);
@@ -92,4 +92,3 @@ public:
 
   }
 };
-
