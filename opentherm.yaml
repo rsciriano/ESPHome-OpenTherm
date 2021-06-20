@@ -145,7 +145,7 @@ switch:
       OpenthermComponent *openthermComp = (OpenthermComponent*) opentherm;
       return {openthermComp->thermostatSwitch};
     switches:
-      name: "Room thermostat"
+      name: "Disable PID"
   - platform: template
     name: "PID Climate Autotune"
     turn_on_action:
