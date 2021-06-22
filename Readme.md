@@ -1,6 +1,6 @@
 # ESPHome OpenTherm
 
-This is an example of a integration with a OpenTherm boiler using [ESPHome](https://esphome.io/) and [Ihor Melnyk](http://ihormelnyk.com/opentherm_adapter) or [DIYLESS](https://diyless.com/product/esp8266-thermostat-shield) OpenTherm Adapter 
+This is an example of a integration with a OpenTherm boiler using [ESPHome](https://esphome.io/) and the [Ihor Melnyk](http://ihormelnyk.com/opentherm_adapter) or [DIYLESS](https://diyless.com/product/esp8266-thermostat-shield) OpenTherm Adapter 
 
 ## Installation
 - Copy the content of this repository to your ESPHome folder
