@@ -27,12 +27,12 @@ public:
   Sensor *pressure_sensor = new Sensor();
   Sensor *modulation_sensor = new Sensor();
   Sensor *heating_target_temperature_sensor = new Sensor();
-  Climate *hotWaterClimate = new OpenthermClimate();
+  OpenthermClimate *hotWaterClimate = new OpenthermClimate();
   OpenthermClimate *heatingWaterClimate = new OpenthermClimate();
   BinarySensor *flame = new OpenthermBinarySensor();
   
   // Set 3 sec. to give time to read all sensors (and not appear in HA as not available)
-  OpenthermComponent(): PollingComponent(15000) {
+  OpenthermComponent(): PollingComponent(3000) {
   }
 
   void set_pid_output(OpenthermFloatOutput *pid_output) { pid_output_ = pid_output; }
@@ -52,6 +52,11 @@ public:
       // Adjust HeatingWaterClimate depending on PID
       // heatingWaterClimate->set_supports_heat_cool_mode(this->pid_output_ != nullptr);
       heatingWaterClimate->set_supports_two_point_target_temperature(this->pid_output_ != nullptr);
+
+      hotWaterClimate->set_temperature_settings(5, 6, 0);
+      heatingWaterClimate->set_temperature_settings(0, 0, 30);
+      hotWaterClimate->setup();
+      heatingWaterClimate->setup();
   }
   float getExternalTemperature() {
       unsigned long response = ot.sendRequest(ot.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::Toutside, 0));
@@ -131,21 +136,6 @@ public:
     // Set hot water temperature
     setHotWaterTemperature(hotWaterClimate->target_temperature);
 
-    //Save the values so they can be restored. Skip this step at startup!
-    if (id(global_on_startup) == false){ //This global variable indicates the ESP is in startup mode.
-      id(global_target_temperature_low) = heatingWaterClimate->target_temperature_low;
-      id(global_target_temperature_high) = heatingWaterClimate->target_temperature_high;
-      id(global_hot_water_target_temperature) = hotWaterClimate->target_temperature;
-      id(global_pid_target_temperature) = id(pid_climate).target_temperature;
-
-      ESP_LOGD("opentherm_component", "Storing variables: %f °C, %f °C, %f °C, %f °C", 
-        id(global_target_temperature_low),
-        id(global_target_temperature_high), 
-        id(global_hot_water_target_temperature),
-        id(global_pid_target_temperature)
-      );
-    }
-
     float boilerTemperature = ot.getBoilerTemperature();
     float ext_temperature = getExternalTemperature();
     float pressure = getPressure();
@@ -170,7 +160,6 @@ public:
     heatingWaterClimate->current_temperature = boilerTemperature;
     heatingWaterClimate->action = isCentralHeatingActive && isFlameOn ? ClimateAction::CLIMATE_ACTION_HEATING : ClimateAction::CLIMATE_ACTION_OFF;
     heatingWaterClimate->publish_state();
-
   }
 
 };

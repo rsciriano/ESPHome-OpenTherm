@@ -13,25 +13,6 @@ esphome:
     - ESP Async WebServer
   includes:
     - esphome-opentherm/
-  on_boot:
-    priority: 600
-    then:
-    - climate.control:
-        id: heating_water
-        mode: AUTO
-        target_temperature_low: !lambda return id(global_target_temperature_low);
-        target_temperature_high: !lambda return id(global_target_temperature_high);
-    - climate.control:
-        id: hot_water
-        mode: AUTO
-        target_temperature: !lambda return id(global_hot_water_target_temperature);
-    - climate.control:
-        id: pid_climate
-        mode: AUTO
-        target_temperature: !lambda return id(global_pid_target_temperature);
-    - globals.set:
-        id: global_on_startup
-        value: 'false'
 
 wifi:
   ssid: !secret wifi_ssid
@@ -44,23 +25,6 @@ captive_portal:
 logger:
 api:
 ota:
-
-globals:
-  - id: global_on_startup
-    type: bool
-    initial_value: 'true'
-  - id: global_target_temperature_low
-    type: float
-    restore_value: yes
-  - id: global_target_temperature_high
-    type: float
-    restore_value: yes
-  - id: global_hot_water_target_temperature
-    type: float
-    restore_value: yes
-  - id: global_pid_target_temperature
-    type: float
-    restore_value: yes
 
 custom_component:
   - lambda: |-
