@@ -19,6 +19,7 @@ class OpenthermComponent: public PollingComponent {
 private:
   const char *TAG = "opentherm_component";
   OpenthermFloatOutput *pid_output_; 
+  Sensor *room_temperature_sensor;
 public:
   Switch *thermostatSwitch = new OpenthermSwitch();
   Sensor *external_temperature_sensor = new Sensor();
@@ -37,6 +38,7 @@ public:
 
   void set_pid_output(OpenthermFloatOutput *pid_output) { pid_output_ = pid_output; }
 
+  void set_room_temperature_sensor(Sensor *sensor) { room_temperature_sensor = sensor; }
 
   void setup() override {
     // This will be called once to set up the component
@@ -80,6 +82,13 @@ public:
       return ot.isValidResponse(response);
   }
 
+  bool setRoomCurrentTemperature(float temperature) {
+	    unsigned int data = ot.temperatureToData(temperature);
+      unsigned long request = ot.buildRequest(OpenThermRequestType::WRITE, OpenThermMessageID::Tr, data);
+      unsigned long response = ot.sendRequest(request);
+      return ot.isValidResponse(response);
+  }
+
   float getModulation() {
     unsigned long response = ot.sendRequest(ot.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::RelModLevel, 0));
     return ot.isValidResponse(response) ? ot.getFloat(response) : -1;
@@ -108,6 +117,16 @@ public:
     float return_temperature = getReturnTemperature();
     float hotWater_temperature = getHotWaterTemperature();
 
+    // Send room current temperature to boiler 
+    if (this->room_temperature_sensor != nullptr) {
+      float room_temp = room_temperature_sensor->get_state();
+      if (this->setRoomCurrentTemperature(room_temp)) {
+        ESP_LOGD("opentherm_component", "Room current temperature of %f °C has been sent to the boiler", room_temp);
+      }
+      else {
+        ESP_LOGD("opentherm_component", "Error sending room current temperature to the boiler");
+      }
+    }
 
     // Set temperature depending on room thermostat
     float heating_target_temperature;

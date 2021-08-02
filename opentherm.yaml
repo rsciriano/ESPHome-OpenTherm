@@ -13,6 +13,12 @@ esphome:
     - ESP Async WebServer
   includes:
     - esphome-opentherm/
+  on_boot:
+    then:
+      lambda: |-
+        OpenthermComponent *openthermComp = (OpenthermComponent*) opentherm;
+        openthermComp->set_room_temperature_sensor(temperature_sensor);   
+
 
 wifi:
   ssid: !secret wifi_ssid
@@ -92,7 +98,7 @@ sensor:
     type: HEAT    
   - platform: pid
     name: "PID Climate ERROR"
-    type: ERROR    
+    type: ERROR
 
 binary_sensor:
   - platform: custom
