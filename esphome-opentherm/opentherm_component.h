@@ -6,13 +6,18 @@
 #include "opentherm_binary.h"
 #include "opentherm_output.h"
 
-// Pins to OpenTherm Adapter
-int inPin = D2; 
-int outPin = D1;
-OpenTherm ot(inPin, outPin, false);
+// Pins to OpenTherm Master (Thermostat)
+int mInPin = D2; 
+int mOutPin = D1;
+OpenTherm mOT(mInPin, mOutPin, false);
 
-ICACHE_RAM_ATTR void handleInterrupt() {
-	ot.handleInterrupt();
+// Pins to OpenTherm Slave (Boiler)
+// int sInPin = D6;
+// int sOutPin = D7;
+// OpenTherm sOT(sInPin, sOutPin, true);
+
+ICACHE_RAM_ATTR void mHandleInterrupt() {
+	mOT.handleInterrupt();
 }
 
 class OpenthermComponent: public PollingComponent {
@@ -43,7 +48,7 @@ public:
     // think of it as the setup() call in Arduino
       ESP_LOGD("opentherm_component", "Setup");
 
-      ot.begin(handleInterrupt);
+      mOT.begin(mHandleInterrupt);
 
       thermostatSwitch->add_on_state_callback([=](bool state) -> void {
         ESP_LOGD ("opentherm_component", "termostatSwitch_on_state_callback %d", state);    
@@ -59,35 +64,35 @@ public:
       heatingWaterClimate->setup();
   }
   float getExternalTemperature() {
-      unsigned long response = ot.sendRequest(ot.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::Toutside, 0));
-      return ot.isValidResponse(response) ? ot.getFloat(response) : -1;
+      unsigned long response = mOT.sendRequest(mOT.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::Toutside, 0));
+      return mOT.isValidResponse(response) ? mOT.getFloat(response) : -1;
   }
 
   float getReturnTemperature() {
-      unsigned long response = ot.sendRequest(ot.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::Tret, 0));
-      return ot.isValidResponse(response) ? ot.getFloat(response) : -1;
+      unsigned long response = mOT.sendRequest(mOT.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::Tret, 0));
+      return mOT.isValidResponse(response) ? mOT.getFloat(response) : -1;
   }
   
   float getHotWaterTemperature() {
-      unsigned long response = ot.sendRequest(ot.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::Tdhw, 0));
-      return ot.isValidResponse(response) ? ot.getFloat(response) : -1;
+      unsigned long response = mOT.sendRequest(mOT.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::Tdhw, 0));
+      return mOT.isValidResponse(response) ? mOT.getFloat(response) : -1;
   }
 
   bool setHotWaterTemperature(float temperature) {
-	    unsigned int data = ot.temperatureToData(temperature);
-      unsigned long request = ot.buildRequest(OpenThermRequestType::WRITE, OpenThermMessageID::TdhwSet, data);
-      unsigned long response = ot.sendRequest(request);
-      return ot.isValidResponse(response);
+	    unsigned int data = mOT.temperatureToData(temperature);
+      unsigned long request = mOT.buildRequest(OpenThermRequestType::WRITE, OpenThermMessageID::TdhwSet, data);
+      unsigned long response = mOT.sendRequest(request);
+      return mOT.isValidResponse(response);
   }
 
   float getModulation() {
-    unsigned long response = ot.sendRequest(ot.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::RelModLevel, 0));
-    return ot.isValidResponse(response) ? ot.getFloat(response) : -1;
+    unsigned long response = mOT.sendRequest(mOT.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::RelModLevel, 0));
+    return mOT.isValidResponse(response) ? mOT.getFloat(response) : -1;
   }
 
   float getPressure() {
-    unsigned long response = ot.sendRequest(ot.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::CHPressure, 0));
-    return ot.isValidResponse(response) ? ot.getFloat(response) : -1;
+    unsigned long response = mOT.sendRequest(mOT.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::CHPressure, 0));
+    return mOT.isValidResponse(response) ? mOT.getFloat(response) : -1;
   }
 
   void update() override {
@@ -101,10 +106,10 @@ public:
 
     
     //Set/Get Boiler Status
-    auto response = ot.setBoilerStatus(enableCentralHeating, enableHotWater, enableCooling);
-    bool isFlameOn = ot.isFlameOn(response);
-    bool isCentralHeatingActive = ot.isCentralHeatingActive(response);
-    bool isHotWaterActive = ot.isHotWaterActive(response);
+    auto response = mOT.setBoilerStatus(enableCentralHeating, enableHotWater, enableCooling);
+    bool isFlameOn = mOT.isFlameOn(response);
+    bool isCentralHeatingActive = mOT.isCentralHeatingActive(response);
+    bool isHotWaterActive = mOT.isHotWaterActive(response);
     float return_temperature = getReturnTemperature();
     float hotWater_temperature = getHotWaterTemperature();
 
@@ -131,12 +136,12 @@ public:
       heating_target_temperature = 10.0;
       ESP_LOGD("opentherm_component", "setBoilerTemperature at %f °C (default low value)", heating_target_temperature);
     }
-    ot.setBoilerTemperature(heating_target_temperature);
+    mOT.setBoilerTemperature(heating_target_temperature);
 
     // Set hot water temperature
     setHotWaterTemperature(hotWaterClimate->target_temperature);
 
-    float boilerTemperature = ot.getBoilerTemperature();
+    float boilerTemperature = mOT.getBoilerTemperature();
     float ext_temperature = getExternalTemperature();
     float pressure = getPressure();
     float modulation = getModulation();
