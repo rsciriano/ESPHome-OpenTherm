@@ -61,7 +61,7 @@ public:
       ESP_LOGD("opentherm_component", "Setup");
 
       mOT.begin(mHandleInterrupt);
-      sOT.begin(sHandleInterrupt, &forward_request_from_thermostat);
+      sOT.begin(sHandleInterrupt, &OpenthermComponent::forward_request_from_thermostat);
 
       thermostatSwitch->add_on_state_callback([=](bool state) -> void {
         ESP_LOGD ("opentherm_component", "termostatSwitch_on_state_callback %d", state);    
