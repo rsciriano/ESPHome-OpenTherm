@@ -9,15 +9,19 @@
 // Pins to OpenTherm Master (Thermostat)
 int mInPin = D2; 
 int mOutPin = D1;
-OpenTherm mOT(mInPin, mOutPin, false);
+OpenTherm mOT(mInPin, mOutPin /*, false */);
 
 // Pins to OpenTherm Slave (Boiler)
-// int sInPin = D6;
-// int sOutPin = D7;
-// OpenTherm sOT(sInPin, sOutPin, true);
+int sInPin = D6;
+int sOutPin = D7;
+OpenTherm sOT(sInPin, sOutPin, true);
 
 ICACHE_RAM_ATTR void mHandleInterrupt() {
 	mOT.handleInterrupt();
+}
+
+ICACHE_RAM_ATTR void sHandleInterrupt() {
+	sOT.handleInterrupt();
 }
 
 class OpenthermComponent: public PollingComponent {
@@ -42,6 +46,15 @@ public:
 
   void set_pid_output(OpenthermFloatOutput *pid_output) { pid_output_ = pid_output; }
 
+  void forwardRequestFromThermostat(unsigned long request, OpenThermResponseStatus status) {
+    
+    ESP_LOGI("opentherm_component", "forwarding request from thermostat to boiler: %#010x", request);
+    unsigned long response = mOT.sendRequest(request);
+    if (response) {
+        ESP_LOGI("opentherm_component", "forwarding response from boiler to thermostat: %#010x", response);
+        sOT.sendResponse(response);
+    }
+  }
 
   void setup() override {
     // This will be called once to set up the component
@@ -49,6 +62,7 @@ public:
       ESP_LOGD("opentherm_component", "Setup");
 
       mOT.begin(mHandleInterrupt);
+      sOT.begin(sHandleInterrupt, forwardRequestFromThermostat);
 
       thermostatSwitch->add_on_state_callback([=](bool state) -> void {
         ESP_LOGD ("opentherm_component", "termostatSwitch_on_state_callback %d", state);    
