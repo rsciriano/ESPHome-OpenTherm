@@ -46,14 +46,6 @@ public:
 
   void set_pid_output(OpenthermFloatOutput *pid_output) { pid_output_ = pid_output; }
 
-  void forward_request_from_thermostat(unsigned long request, OpenThermResponseStatus status) {
-    ESP_LOGI("opentherm_component", "forwarding request from thermostat to boiler: %#010x", request);
-    unsigned long response = mOT.sendRequest(request);
-    if (response) {
-        ESP_LOGI("opentherm_component", "forwarding response from boiler to thermostat: %#010x", response);
-        sOT.sendResponse(response);
-    }
-  }
 
   void setup() override {
     // This will be called once to set up the component
@@ -61,7 +53,14 @@ public:
       ESP_LOGD("opentherm_component", "Setup");
 
       mOT.begin(mHandleInterrupt);
-      sOT.begin(sHandleInterrupt, &OpenthermComponent::forward_request_from_thermostat);
+      sOT.begin(sHandleInterrupt, [=](unsigned long request, OpenThermResponseStatus status) -> void {
+        ESP_LOGI("opentherm_component", "forwarding request from thermostat to boiler: %#010x", request);
+        unsigned long response = mOT.sendRequest(request);
+        if (response) {
+            ESP_LOGI("opentherm_component", "forwarding response from boiler to thermostat: %#010x", response);
+            sOT.sendResponse(response);
+        }
+      });
 
       thermostatSwitch->add_on_state_callback([=](bool state) -> void {
         ESP_LOGD ("opentherm_component", "termostatSwitch_on_state_callback %d", state);    
