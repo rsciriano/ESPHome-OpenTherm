@@ -46,8 +46,7 @@ public:
 
   void set_pid_output(OpenthermFloatOutput *pid_output) { pid_output_ = pid_output; }
 
-  void forwardRequestFromThermostat(unsigned long request, OpenThermResponseStatus status) {
-    
+  void forward_request_from_thermostat(unsigned long request, OpenThermResponseStatus status) {
     ESP_LOGI("opentherm_component", "forwarding request from thermostat to boiler: %#010x", request);
     unsigned long response = mOT.sendRequest(request);
     if (response) {
@@ -62,7 +61,7 @@ public:
       ESP_LOGD("opentherm_component", "Setup");
 
       mOT.begin(mHandleInterrupt);
-      sOT.begin(sHandleInterrupt, forwardRequestFromThermostat);
+      sOT.begin(sHandleInterrupt, &forward_request_from_thermostat);
 
       thermostatSwitch->add_on_state_callback([=](bool state) -> void {
         ESP_LOGD ("opentherm_component", "termostatSwitch_on_state_callback %d", state);    
@@ -118,6 +117,8 @@ public:
     bool enableHotWater = hotWaterClimate->mode == ClimateMode::CLIMATE_MODE_HEAT;
     bool enableCooling = false; // this boiler is for heating only
 
+    // Process Thermostat Status
+    sOT.process();
     
     //Set/Get Boiler Status
     auto response = mOT.setBoilerStatus(enableCentralHeating, enableHotWater, enableCooling);
