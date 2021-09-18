@@ -60,30 +60,37 @@ sensor:
         openthermComp->heating_target_temperature_sensor
       };
     sensors:
-    - name: Boiler Temperature
+    - name: "Boiler Temperature"
       unit_of_measurement: °C
       accuracy_decimals: 1
+      device_class: temperature
     - name: "External Temperature"
       unit_of_measurement: °C
-      accuracy_decimals: 0  
+      accuracy_decimals: 0
+      device_class: temperature
     - name: "Return Temperature"
       unit_of_measurement: °C
       accuracy_decimals: 1
+      device_class: temperature
     - name: "Heating Water Pressure"
       unit_of_measurement: hPa
       accuracy_decimals: 1
+      device_class: pressure
     - name: "Boiler Modulation"
       unit_of_measurement: "%"
       accuracy_decimals: 0
+      device_class: power_factor
     - name: "Heating Target Temperature"
-      unit_of_measurement: ºC
+      unit_of_measurement: °C
       accuracy_decimals: 1
+      device_class: temperature
       
   - platform: homeassistant
     id: temperature_sensor
     entity_id: sensor.temperature_sensor
     name: "Actual temperature"
     unit_of_measurement: °C
+    ###device_class: temperature
   - platform: pid
     name: "PID Climate Result"
     type: RESULT    
@@ -101,7 +108,7 @@ binary_sensor:
       return {openthermComp->flame};
     binary_sensors:
     - name: "Flame"
-      #device_class: heat
+      device_class: heat
 
 switch:
   - platform: custom
