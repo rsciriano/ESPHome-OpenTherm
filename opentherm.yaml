@@ -76,7 +76,7 @@ sensor:
       unit_of_measurement: "%"
       accuracy_decimals: 0
     - name: "Heating Target Temperature"
-      unit_of_measurement: ºC
+      unit_of_measurement: °C
       accuracy_decimals: 1
       
   - platform: homeassistant
