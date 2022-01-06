@@ -1,0 +1,10 @@
+name: build
+on: [workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          echo -e "wifi_ssid: 'wifi_ssid'\nwifi_password: 'wifi_password'\nesphome_fallback_password: 'fallback_password'" > secrets.yaml
+      - run: docker run --rm -v "${PWD}":/config esphome/esphome compile opentherm.yaml
