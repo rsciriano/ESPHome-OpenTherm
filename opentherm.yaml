@@ -82,6 +82,12 @@ sensor:
     entity_id: sensor.temperature_sensor
     name: "Actual temperature"
     unit_of_measurement: °C
+  - platform: template
+    id: temperature_sensor_interval
+    name: "Actual temperature interval"
+    lambda: |-
+      return id(temperature_sensor).state;
+    update_interval: 1s
   - platform: pid
     name: "PID Climate Result"
     type: RESULT    
@@ -133,7 +139,7 @@ climate:
       min_temperature: 16 °C
       max_temperature: 28 °C
       temperature_step: 0.5 °C
-    sensor: temperature_sensor
+    sensor: temperature_sensor_interval
     default_target_temperature: 20°C
     heat_output: pid_output
     control_parameters:
