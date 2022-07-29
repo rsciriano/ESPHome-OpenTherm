@@ -28,14 +28,14 @@ custom_component:
   - lambda: |-
       auto opentherm = new OpenthermComponent();
       return {opentherm};
-    
     components:
       - id: opentherm
+
 output:
   - platform: custom
     type: float
     lambda: |-
-      OpenthermComponent *openthermComp = (OpenthermComponent*) opentherm;
+      OpenthermComponent *openthermComp = (OpenthermComponent*) id(opentherm);
       auto opentherm_pid_output = new OpenthermFloatOutput();
       openthermComp->set_pid_output(opentherm_pid_output);
       App.register_component(opentherm_pid_output);     
@@ -48,7 +48,7 @@ output:
 sensor:
   - platform: custom
     lambda: |-    
-      OpenthermComponent *openthermComp = (OpenthermComponent*) opentherm;
+      OpenthermComponent *openthermComp = (OpenthermComponent*) id(opentherm);
       return { 
         openthermComp->boiler_temperature, 
         openthermComp->external_temperature_sensor, 
@@ -95,7 +95,7 @@ sensor:
 binary_sensor:
   - platform: custom
     lambda: |-
-      OpenthermComponent *openthermComp = (OpenthermComponent*) opentherm;
+      OpenthermComponent *openthermComp = (OpenthermComponent*) id(opentherm);
       return {openthermComp->flame};
     binary_sensors:
     - name: "Flame"
@@ -104,7 +104,7 @@ binary_sensor:
 switch:
   - platform: custom
     lambda: |-
-      OpenthermComponent *openthermComp = (OpenthermComponent*) opentherm;
+      OpenthermComponent *openthermComp = (OpenthermComponent*) id(opentherm);
       return {openthermComp->thermostatSwitch};
     switches:
       name: "Disable PID"
@@ -116,7 +116,7 @@ switch:
 climate:
   - platform: custom
     lambda: |-
-      OpenthermComponent *openthermComp = (OpenthermComponent*) opentherm;
+      OpenthermComponent *openthermComp = (OpenthermComponent*) id(opentherm);
       return {
         openthermComp->hotWaterClimate, 
         openthermComp->heatingWaterClimate
