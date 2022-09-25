@@ -1,3 +1,4 @@
+/*
 #pragma once
 
 #include "esphome.h"
@@ -13,3 +14,4 @@ class OpenthermSwitch : public Switch {
     publish_state(state);
   }
 };
+*/

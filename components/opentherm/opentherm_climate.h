@@ -1,8 +1,11 @@
 #pragma once
-#include "esphome.h"
+#include "esphome/core/component.h"
+#include "esphome/components/climate/climate.h"
 
+namespace esphome {
+namespace opentherm {
 
-class OpenthermClimate : public Climate, public Component {
+class OpenthermClimate : public climate::Climate {
 private:
     const char *TAG = "opentherm_climate";
     bool supports_heat_cool_mode_ = false;
@@ -21,6 +24,7 @@ public:
         default_target_ = target;
     }
 
+    /*
     void setup() override {
         // restore setpoints
         auto restore = this->restore_state_();
@@ -38,6 +42,7 @@ public:
             }
         }
     }
+    */
 
     climate::ClimateTraits traits() override {
 
@@ -58,49 +63,52 @@ public:
         return traits;    
     }
 
-  void control(const ClimateCall &call) override {
+    void control(const climate::ClimateCall &call) override {
 
-    if (call.get_mode().has_value()) {
-        // User requested mode change
-        ClimateMode mode = *call.get_mode();
-        // Send mode to hardware
-        // ...
-        ESP_LOGD(TAG, "get_mode");    
+        if (call.get_mode().has_value()) {
+            // User requested mode change
+            climate::ClimateMode mode = *call.get_mode();
+            // Send mode to hardware
+            // ...
+            ESP_LOGD(TAG, "get_mode");    
 
-        // Publish updated state
+            // Publish updated state
+        }
         this->mode = mode;
         this->publish_state();
-    }
-    if (call.get_target_temperature().has_value()) {
-        // User requested target temperature change
-        float temp = *call.get_target_temperature();
-        // Send target temp to climate
-        // ...
-        ESP_LOGD(TAG, "get_target_temperature");    
 
-        this->target_temperature = temp;
-        this->publish_state();
-    }
-    if (call.get_target_temperature_low().has_value()) {
-        // User requested target temperature change
-        float temp = *call.get_target_temperature_low();
-        // Send target temp to climate
-        // ...
-        ESP_LOGD(TAG, "get_target_temperature_low");    
+        if (call.get_target_temperature().has_value()) {
+            // User requested target temperature change
+            float temp = *call.get_target_temperature();
+            // Send target temp to climate
+            // ...
+            ESP_LOGD(TAG, "get_target_temperature");    
 
-        this->target_temperature_low = temp;
-        this->publish_state();
-    }
-    if (call.get_target_temperature_high().has_value()) {
-        // User requested target temperature change
-        float temp = *call.get_target_temperature_high();
-        // Send target temp to climate
-        // ...
-        ESP_LOGD(TAG, "get_target_temperature_high");    
+            this->target_temperature = temp;
+            this->publish_state();
+        }
+        if (call.get_target_temperature_low().has_value()) {
+            // User requested target temperature change
+            float temp = *call.get_target_temperature_low();
+            // Send target temp to climate
+            // ...
+            ESP_LOGD(TAG, "get_target_temperature_low");    
 
-        this->target_temperature_high = temp;
-        this->publish_state();
-    }
+            this->target_temperature_low = temp;
+            this->publish_state();
+        }
+        if (call.get_target_temperature_high().has_value()) {
+            // User requested target temperature change
+            float temp = *call.get_target_temperature_high();
+            // Send target temp to climate
+            // ...
+            ESP_LOGD(TAG, "get_target_temperature_high");    
 
-  }
+            this->target_temperature_high = temp;
+            this->publish_state();
+        }
+    }
 };
+
+}
+}

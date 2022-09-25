@@ -1,3 +1,4 @@
+/*
 #pragma once
 
 #include "esphome.h"
@@ -17,5 +18,6 @@ class OpenthermFloatOutput : public Component, public FloatOutput {
   void write_state(float state) override { this->state_ = state; }
 
 };
+*/
 
 

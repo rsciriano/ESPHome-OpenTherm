@@ -1,0 +1,36 @@
+substitutions:
+  devicename: opentherm-sample1
+  upper_devicename: Opentherm Sample1
+
+esphome:
+  name: $devicename
+  platform: ESP8266
+  board: d1_mini
+
+external_components:
+  - source: components
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "${devicename} Fallback"
+    password: !secret esphome_fallback_password
+
+captive_portal:
+logger:
+api:
+ota:
+
+opentherm:
+  in_pin: D4
+  out_pin: D5
+
+climate:
+  - platform: opentherm
+    hotwater:
+      id: hot_water_climate
+      #name: 'Hot water Climate'
+
+sensor:
+  - platform: opentherm
