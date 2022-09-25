@@ -49,11 +49,8 @@ public:
         auto traits = climate::ClimateTraits();
         traits.set_supports_current_temperature(true);
         // traits.set_supports_heat_cool_mode(supports_heat_cool_mode_);
-        traits.set_supports_heat_cool_mode(false);
-        traits.set_supports_cool_mode(false);
-        traits.set_supports_heat_mode(true);
+        traits.set_supported_modes({climate::CLIMATE_MODE_OFF, climate::CLIMATE_MODE_HEAT});
         traits.set_supports_two_point_target_temperature(supports_two_point_target_temperature_);
-        traits.set_supports_away(false);
         traits.set_supports_action(true);
 
         traits.set_visual_min_temperature(5);
