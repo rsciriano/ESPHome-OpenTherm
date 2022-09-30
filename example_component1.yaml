@@ -31,6 +31,9 @@ climate:
     hotwater:
       id: hot_water
       name: 'Hot water'
+    heatingwater:
+      id: heating_water
+      name: 'Heating water'
 
 sensor:
   - platform: opentherm
