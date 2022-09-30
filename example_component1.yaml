@@ -1,6 +1,6 @@
 substitutions:
-  devicename: opentherm-sample1
-  upper_devicename: Opentherm Sample1
+  devicename: opentherm
+  upper_devicename: Opentherm
 
 esphome:
   name: $devicename
@@ -23,14 +23,14 @@ api:
 ota:
 
 opentherm:
-  in_pin: D4
-  out_pin: D5
+  in_pin: D5
+  out_pin: D6
 
 climate:
   - platform: opentherm
     hotwater:
-      id: hot_water_climate
-      #name: 'Hot water Climate'
+      id: hot_water
+      name: 'Hot water'
 
 sensor:
   - platform: opentherm

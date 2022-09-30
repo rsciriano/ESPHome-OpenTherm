@@ -9,21 +9,21 @@
 namespace esphome {
 namespace opentherm {
 
-class OpenthermComponent: public PollingComponent {
+class OpenthermController: public PollingComponent {
 private:
   const char *TAG = "opentherm_component";
   OpenTherm *ot;
   //OpenthermFloatOutput *pid_output_; 
 protected:
-  uint8_t in_pin_;
-  uint8_t out_pin_;
+  uint8_t in_pin_ = D4;
+  uint8_t out_pin_ = D5;
   OpenthermClimate *hotWaterClimate_;
-  OpenthermClimate *heatingWaterClimate_;
+  //OpenthermClimate *heatingWaterClimate_;
 public:
   void set_in_pin(uint8_t in_pin) { in_pin_ = in_pin; }
   void set_out_pin(uint8_t out_pin) { out_pin_ = out_pin; }
   void set_hotWaterClimate(OpenthermClimate *hotWaterClimate) { hotWaterClimate_ = hotWaterClimate; }
-  void set_heatingWaterClimate(OpenthermClimate *heatingWaterClimate) { heatingWaterClimate_ = heatingWaterClimate; }
+  //void set_heatingWaterClimate(OpenthermClimate *heatingWaterClimate) { heatingWaterClimate_ = heatingWaterClimate; }
   //Switch *thermostatSwitch = new OpenthermSwitch();
   //Sensor *external_temperature_sensor = new Sensor();
   //Sensor *return_temperature_sensor = new Sensor();
@@ -34,7 +34,7 @@ public:
   //BinarySensor *flame = new OpenthermBinarySensor();
   
   // Set 3 sec. to give time to read all sensors (and not appear in HA as not available)
-  OpenthermComponent(): PollingComponent(3000) {
+  OpenthermController(): PollingComponent(3000) {
   }
 
   //void set_pid_output(OpenthermFloatOutput *pid_output) { pid_output_ = pid_output; }
@@ -45,6 +45,7 @@ public:
     // think of it as the setup() call in Arduino
       ESP_LOGD("opentherm_component", "Setup");
 
+      
       ot = new OpenTherm(this->in_pin_, this->out_pin_, false);
       ot->begin([this](unsigned long response, OpenThermResponseStatus status) {
         this->processResponse(response, status);
@@ -59,20 +60,11 @@ public:
       //heatingWaterClimate->set_supports_two_point_target_temperature(this->pid_output_ != nullptr);
 
       hotWaterClimate_->set_temperature_settings(5, 6, 0);
-      heatingWaterClimate_->set_temperature_settings(0, 0, 30);
+      //heatingWaterClimate_->set_temperature_settings(0, 0, 30);
       //hotWaterClimate->setup();
       //heatingWaterClimate->setup();
   }
-  float getExternalTemperature() {
-      unsigned long response = ot->sendRequest(ot->buildRequest(OpenThermRequestType::READ, OpenThermMessageID::Toutside, 0));
-      return ot->isValidResponse(response) ? ot->getFloat(response) : -1;
-  }
 
-  float getReturnTemperature() {
-      unsigned long response = ot->sendRequest(ot->buildRequest(OpenThermRequestType::READ, OpenThermMessageID::Tret, 0));
-      return ot->isValidResponse(response) ? ot->getFloat(response) : -1;
-  }
-  
   float getHotWaterTemperature() {
       unsigned long response = ot->sendRequest(ot->buildRequest(OpenThermRequestType::READ, OpenThermMessageID::Tdhw, 0));
       return ot->isValidResponse(response) ? ot->getFloat(response) : -1;
@@ -85,6 +77,17 @@ public:
       return ot->isValidResponse(response);
   }
 
+  /*
+  float getExternalTemperature() {
+      unsigned long response = ot->sendRequest(ot->buildRequest(OpenThermRequestType::READ, OpenThermMessageID::Toutside, 0));
+      return ot->isValidResponse(response) ? ot->getFloat(response) : -1;
+  }
+
+  float getReturnTemperature() {
+      unsigned long response = ot->sendRequest(ot->buildRequest(OpenThermRequestType::READ, OpenThermMessageID::Tret, 0));
+      return ot->isValidResponse(response) ? ot->getFloat(response) : -1;
+  }
+  
   float getModulation() {
     unsigned long response = ot->sendRequest(ot->buildRequest(OpenThermRequestType::READ, OpenThermMessageID::RelModLevel, 0));
     return ot->isValidResponse(response) ? ot->getFloat(response) : -1;
@@ -94,24 +97,28 @@ public:
     unsigned long response = ot->sendRequest(ot->buildRequest(OpenThermRequestType::READ, OpenThermMessageID::CHPressure, 0));
     return ot->isValidResponse(response) ? ot->getFloat(response) : -1;
   }
+  */
 
   void update() override {
 
-    ESP_LOGD("opentherm_component", "update heatingWaterClimate: %i", heatingWaterClimate_->mode);
+    //ESP_LOGD("opentherm_component", "update heatingWaterClimate: %i", heatingWaterClimate_->mode);
     ESP_LOGD("opentherm_component", "update hotWaterClimate: %i", hotWaterClimate_->mode);
     
-    bool enableCentralHeating = heatingWaterClimate_->mode == climate::ClimateMode::CLIMATE_MODE_HEAT;
+    //bool enableCentralHeating = heatingWaterClimate_->mode == climate::ClimateMode::CLIMATE_MODE_HEAT;
+    bool enableCentralHeating = false;
     bool enableHotWater = hotWaterClimate_->mode == climate::ClimateMode::CLIMATE_MODE_HEAT;
     bool enableCooling = false; // this boiler is for heating only
 
     
     //Set/Get Boiler Status
+    
     auto response = ot->setBoilerStatus(enableCentralHeating, enableHotWater, enableCooling);
     bool isFlameOn = ot->isFlameOn(response);
     bool isCentralHeatingActive = ot->isCentralHeatingActive(response);
     bool isHotWaterActive = ot->isHotWaterActive(response);
-    float return_temperature = getReturnTemperature();
+    //float return_temperature = getReturnTemperature();
     float hotWater_temperature = getHotWaterTemperature();
+    
 
 
     // Set temperature depending on room thermostat
@@ -143,10 +150,10 @@ public:
     // Set hot water temperature
     setHotWaterTemperature(hotWaterClimate_->target_temperature);
 
-    float boilerTemperature = ot->getBoilerTemperature();
-    float ext_temperature = getExternalTemperature();
-    float pressure = getPressure();
-    float modulation = getModulation();
+    //float boilerTemperature = ot->getBoilerTemperature();
+    //float ext_temperature = getExternalTemperature();
+    //float pressure = getPressure();
+    //float modulation = getModulation();
 
     // Publish sensor values
     /*
@@ -165,14 +172,15 @@ public:
     hotWaterClimate_->action = isHotWaterActive ? climate::ClimateAction::CLIMATE_ACTION_HEATING : climate::ClimateAction::CLIMATE_ACTION_OFF;
     hotWaterClimate_->publish_state();
     
+
     // Publish status of thermostat that controls heating
-    heatingWaterClimate_->current_temperature = boilerTemperature;
-    heatingWaterClimate_->action = isCentralHeatingActive && isFlameOn ? climate::ClimateAction::CLIMATE_ACTION_HEATING : climate::ClimateAction::CLIMATE_ACTION_OFF;
-    heatingWaterClimate_->publish_state();
+    //heatingWaterClimate_->current_temperature = boilerTemperature;
+    //heatingWaterClimate_->action = isCentralHeatingActive && isFlameOn ? climate::ClimateAction::CLIMATE_ACTION_HEATING : climate::ClimateAction::CLIMATE_ACTION_OFF;
+    //heatingWaterClimate_->publish_state();
   }
 
   void processResponse(unsigned long response, OpenThermResponseStatus status) {
-        ESP_LOGD("opentherm_component", "Process response  [response: %d, status %s", response, ot->statusToString(status));
+    ESP_LOGD("opentherm_component", "Opentherm adapter comunication [response: %d, status %s", response, ot->statusToString(status));
   }
 
   void loop() override {

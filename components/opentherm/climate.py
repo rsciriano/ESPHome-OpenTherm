@@ -24,13 +24,12 @@ OpenThermClimate = opentherm_ns.class_("OpenthermClimate", climate.Climate, cg.C
 CONFIG_SCHEMA = (
     cv.Schema(
         {
-            #cv.GenerateID(): cv.declare_id(OpenThermClimate),
-            #cv.Optional(CONF_HOT_WATER): climate.CLIMATE_SCHEMA.extend(
-            cv.Optional(CONF_HOT_WATER): cv.Schema({}).extend(
+            cv.Optional(CONF_HOT_WATER): climate.CLIMATE_SCHEMA.extend(
                 {
                     cv.GenerateID(): cv.declare_id(OpenThermClimate),
                 }
             ).extend(opentherm_component_schema())
+            .extend(cv.COMPONENT_SCHEMA)
         }
     )
     .extend(opentherm_component_schema())
@@ -46,6 +45,6 @@ async def to_code(config):
 
     if CONF_HOT_WATER in config:
         hotwater_climate = cg.new_Pvariable(config[CONF_HOT_WATER][CONF_ID])
-#        await cg.register_component(hotwater_climate, config[CONF_HOT_WATER])
-#        await climate.register_climate(hotwater_climate, config[CONF_HOT_WATER])
+        await cg.register_component(hotwater_climate, config[CONF_HOT_WATER])
+        await climate.register_climate(hotwater_climate, config[CONF_HOT_WATER])
         await set_hotwater_climate(hotwater_climate, config[CONF_HOT_WATER])

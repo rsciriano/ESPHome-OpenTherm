@@ -5,7 +5,7 @@
 namespace esphome {
 namespace opentherm {
 
-class OpenthermClimate : public climate::Climate {
+class OpenthermClimate : public climate::Climate, public Component {
 private:
     const char *TAG = "opentherm_climate";
     bool supports_heat_cool_mode_ = false;
@@ -24,7 +24,6 @@ public:
         default_target_ = target;
     }
 
-    /*
     void setup() override {
         // restore setpoints
         auto restore = this->restore_state_();
@@ -42,7 +41,6 @@ public:
             }
         }
     }
-    */
 
     climate::ClimateTraits traits() override {
 
@@ -67,12 +65,11 @@ public:
             climate::ClimateMode mode = *call.get_mode();
             // Send mode to hardware
             // ...
-            ESP_LOGD(TAG, "get_mode");    
+            ESP_LOGD(TAG, "get_mode %d", mode);    
 
-            // Publish updated state
+            this->mode = mode;
+            this->publish_state();
         }
-        this->mode = mode;
-        this->publish_state();
 
         if (call.get_target_temperature().has_value()) {
             // User requested target temperature change

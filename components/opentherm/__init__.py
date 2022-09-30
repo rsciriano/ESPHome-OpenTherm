@@ -15,13 +15,13 @@ CONF_OUT_PIN = "out_pin"
 CONF_OPENTHERM_ID = "opentherm_id"
 
 opentherm_ns = cg.esphome_ns.namespace("opentherm")
-OpenThermComponent = opentherm_ns.class_("OpenthermComponent", cg.Component, cg.esphome_ns.namespace("text_sensor").class_("TextSensor"))
+OpenThermController = opentherm_ns.class_("OpenthermController", cg.Component, cg.esphome_ns.namespace("text_sensor").class_("TextSensor"))
 
 
 MULTI_CONF = False
 CONFIG_SCHEMA = cv.Schema(
     {
-        cv.GenerateID(): cv.declare_id(OpenThermComponent),
+        cv.GenerateID(): cv.declare_id(OpenThermController),
         cv.Optional(CONF_IN_PIN, default="D2"): pins.internal_gpio_input_pin_number,
         cv.Optional(CONF_OUT_PIN, default="D1"): pins.internal_gpio_output_pin_number,
     }
@@ -46,7 +46,7 @@ def opentherm_component_schema():
     :return: The OpenTherm component schema, `extend` this in your config schema.
     """
     schema = {
-        cv.GenerateID(CONF_OPENTHERM_ID): cv.use_id(OpenThermComponent),
+        cv.GenerateID(CONF_OPENTHERM_ID): cv.use_id(OpenThermController),
     }
     return cv.Schema(schema)
 
