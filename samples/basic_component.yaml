@@ -1,0 +1,40 @@
+substitutions:
+  devicename: opentherm_basic
+  upper_devicename: Opentherm Basic
+
+esphome:
+  name: $devicename
+  platform: ESP8266
+  board: d1_mini
+
+external_components:
+  - source: github://rsciriano/ESPHome-OpenTherm@external-component
+    components: [ opentherm ]
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "${devicename} Fallback"
+    password: !secret esphome_fallback_password
+
+captive_portal:
+logger:
+api:
+ota:
+
+opentherm:
+  in_pin: D5
+  out_pin: D6
+
+climate:
+  - platform: opentherm
+    hotwater:
+      id: hot_water
+      name: 'Hot water'
+    heatingwater:
+      id: heating_water
+      name: 'Heating water'
+
+sensor:
+  - platform: opentherm
