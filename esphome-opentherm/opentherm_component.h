@@ -114,7 +114,7 @@ public:
     if (this->pid_output_ != nullptr) {
       float pid_output = pid_output_->get_state();
       if (pid_output == 0.0f) {
-        heating_target_temperature = 10.0f;
+        heating_target_temperature = 0.0f;
       }
       else {
         heating_target_temperature =  pid_output * (heatingWaterClimate->target_temperature_high - heatingWaterClimate->target_temperature_low) 
@@ -127,8 +127,7 @@ public:
       ESP_LOGD("opentherm_component", "setBoilerTemperature  at %f °C (from heating water climate)", heating_target_temperature);
     }
     else {
-      // If the room thermostat is off, set it to 10, so that the pump continues to operate
-      heating_target_temperature = 10.0;
+      heating_target_temperature = 0.0;
       ESP_LOGD("opentherm_component", "setBoilerTemperature at %f °C (default low value)", heating_target_temperature);
     }
     ot.setBoilerTemperature(heating_target_temperature);
