@@ -7,8 +7,8 @@ esphome:
   platform: ESP8266
   board: d1_mini
   platformio_options:
-    lib_deps: 
-    - ihormelnyk/OpenTherm Library @ 1.1.3
+    lib_deps:
+    - ihormelnyk/OpenTherm Library @ 1.1.4
   includes:
     - esphome-opentherm/
 

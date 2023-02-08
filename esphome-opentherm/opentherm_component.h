@@ -11,7 +11,7 @@ int inPin = D2;
 int outPin = D1;
 OpenTherm ot(inPin, outPin, false);
 
-ICACHE_RAM_ATTR void handleInterrupt() {
+IRAM_ATTR void handleInterrupt() {
 	ot.handleInterrupt();
 }
 
