@@ -60,17 +60,17 @@ public:
   }
   float getExternalTemperature() {
       unsigned long response = ot.sendRequest(ot.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::Toutside, 0));
-      return ot.isValidResponse(response) ? ot.getFloat(response) : -1;
+      return ot.isValidResponse(response) ? ot.getFloat(response) : NAN;
   }
 
   float getReturnTemperature() {
       unsigned long response = ot.sendRequest(ot.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::Tret, 0));
-      return ot.isValidResponse(response) ? ot.getFloat(response) : -1;
+      return ot.isValidResponse(response) ? ot.getFloat(response) : NAN;
   }
   
   float getHotWaterTemperature() {
       unsigned long response = ot.sendRequest(ot.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::Tdhw, 0));
-      return ot.isValidResponse(response) ? ot.getFloat(response) : -1;
+      return ot.isValidResponse(response) ? ot.getFloat(response) : NAN;
   }
 
   bool setHotWaterTemperature(float temperature) {
@@ -82,12 +82,12 @@ public:
 
   float getModulation() {
     unsigned long response = ot.sendRequest(ot.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::RelModLevel, 0));
-    return ot.isValidResponse(response) ? ot.getFloat(response) : -1;
+    return ot.isValidResponse(response) ? ot.getFloat(response) : NAN;
   }
 
   float getPressure() {
     unsigned long response = ot.sendRequest(ot.buildRequest(OpenThermRequestType::READ, OpenThermMessageID::CHPressure, 0));
-    return ot.isValidResponse(response) ? ot.getFloat(response) : -1;
+    return ot.isValidResponse(response) ? ot.getFloat(response) : NAN;
   }
 
   void update() override {
